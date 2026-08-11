@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+  </Folder>
   <Project Path="ParkingReservation.Api/ParkingReservation.Api.csproj" />
   <Project Path="ParkingReservation.Application/ParkingReservation.Application.csproj" />
   <Project Path="ParkingReservation.Domain/ParkingReservation.Domain.csproj" />

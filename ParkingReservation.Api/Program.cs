@@ -18,7 +18,6 @@ builder.Services.AddScoped<ReservationService>();
 
 var app = builder.Build();
 
-// Migráció futtatása és seed induláskor
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ParkingDbContext>();
@@ -26,11 +25,8 @@ using (var scope = app.Services.CreateScope())
     DbSeeder.Seed(db);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.MapControllers();
