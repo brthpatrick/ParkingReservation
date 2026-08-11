@@ -1,0 +1,19 @@
+﻿# Döntési Napló és Reflexió
+
+## Döntési Napló
+
+| # | Döntési pont | Amit választottál | Miért | Milyen alternatívát vetettél el |
+|---|---|---|---|---|
+| 1 | Ütközés-ellenőrzés helye | Az adatbázis-specifikus lekérdezés (HasOverlappingReservationsAsync) a repository szintjén, az üzleti szabály (elfogadás/elutasítás) a Service rétegben | Az SQL-alapú átfedés-lekérdezés hatékonyabb és jobban skálázódik, míg a "mit jelent elfogadható foglalás" döntés az Application réteg felelőssége | Az összes foglalás memóriába töltése és C#-ban szűrése - egyszerűbb, de nem skálázódik jól nagyobb adatmennyiségnél |
+| 2 | Foglalás lemondásának megvalósítása | Soft delete: a Reservation Status mezője Cancelled-re vált, a rekord megmarad | Auditálhatóság - megmarad, hogy mikor mit foglaltak és mondtak le; a Cancelled foglalások nem számítanak ütközésnek, így a hely újra foglalható | Fizikai törlés (DELETE) az adatbázisból - egyszerűbb, de elveszik a foglalási előzmény |
+| 3 | Connection string / DB jelszó kezelése | appsettings.json-ban és docker-compose.yml-ben egyszerű szövegként | Ez egy lokális/dockerizált fejlesztői jelszó, nem éles secret; így a bíráló egyetlen paranccsal (docker-compose up) tudja futtatni a rendszert, nincs szükség külön secret-beállításra | User Secrets / környezeti változó külön kezelése - éles projektnél helyes megoldás lenne, de itt felesleges plusz lépést jelentene a futtatáshoz |
+| 4 | API dokumentáció eszköze | Swashbuckle (Swagger UI), mindig elérhető függetlenül a környezettől (nem csak Development módban) | A bírálónak kényelmesebb, ha egy paranccsal indítja a rendszert és rögtön böngészőből tesztelheti; Docker Compose-ban a környezet alapból Production, ezért a UseSwagger()/UseSwaggerUI() hívást ki kellett venni az IsDevelopment() feltétel alól | Csak Development módban engedélyezett Swagger - éles gyakorlat, de itt megnehezítette volna a kipróbálást |
+| 5 | Docker Compose indítási sorrend | depends_on + healthcheck az SQL Server konténeren, nem sima depends_on | Sima depends_on csak azt garantálja, hogy a DB konténer elindult, nem hogy fogad kapcsolatokat; healthcheck nélkül az API elindulhatna, mielőtt a DB készen áll, és a Database.Migrate() hívás hibával elszállna | Sima depends_on retry logika nélkül - kipróbálva tapasztaltuk, hogy az EF Core connection resiliency-je enélkül is átvitte az első sikertelen kapcsolódási kísérletet, de healthcheckkel megbízhatóbb |
+
+## Reflexió
+
+A fejlesztés során a legnagyobb kihívás a Docker környezet összeállítása volt: a Visual Studio által generált Api projekt véletlenül class library sablonnal jött létre webapi helyett, ami hiányzó Program.cs és Controllers mappa formájában okozott zavart, és ezt a projekt törlésével és helyes sablonnal való újralétrehozásával oldottam meg. Hasonlóan tanulságos volt a Swagger UI eltűnése Docker környezetben, aminek oka az volt, hogy a konténer alapból Production módban fut, és a UseSwaggerUI() hívás Development-hez volt kötve. A repository implementáció és az interfész közötti eltérés (hiányzó metódusok, hiányzó interfész-implementáció) egy építési hibát is okozott, amit a két fájl egymás mellé állításával sikerült beazonosítani. A legnagyobb tanulság, hogy Docker Compose-ban a szolgáltatások közötti függőséget nem elég depends_on-nal jelezni, healthcheck is szükséges a megbízható induláshoz.
+
+## AI-eszköz használat
+
+A megoldás során AI-asszisztenst (Claude) használtam a fejlesztés teljes folyamatában: az architektúra megtervezéséhez, a réteges kód (Domain, Application, Infrastructure, Api) megírásához, a Docker Compose és Dockerfile összeállításához, a hibák (build hibák, Swagger, migráció) diagnosztizálásához, valamint a dokumentáció megírásához. A kódot lépésről lépésre, saját magam hoztam létre a fájlokat és futtattam a parancsokat, hogy értsem, mi történik minden lépésben, és minden változtatást én commitoltam verziókezelésbe.
