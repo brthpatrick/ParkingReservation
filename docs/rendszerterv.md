@@ -14,7 +14,7 @@ A megoldás Clean Architecture elvek szerint, rétegzett felépítéssel készü
     ParkingReservation.Domain         <- Entitások (ParkingSpot, Reservation), enumok
     ParkingReservation.Tests          <- Unit tesztek
 
-A függőségi irány: **Api → Infrastructure → Application → Domain**. A Domain réteg semmilyen külső csomagtól nem függ, az Application réteg csak a Domain-től függ és nem ismeri az EF Core-t (a perzisztenciát az IParkingReservationRepository interfész absztrahálja).
+A függőségi irány: **Api → Infrastructure → Application → Domain**. A Domain réteg semmilyen külső csomagtól nem függ. Az Application réteg csak a Domain-től függ, és nem tudja, hogy SQL Server van a háttérben - az adatbázis-elérést egy interfész (IParkingReservationRepository) mögé rejtettük, ezt valósítja meg ténylegesen EF Core-ral az Infrastructure réteg.
 
 ## Adatmodell
 
