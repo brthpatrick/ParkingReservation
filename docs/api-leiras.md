@@ -13,8 +13,9 @@ Visszaadja az összes parkolóhelyet.
 **Válasz (200 OK):**
 ```json
 [
-  { "id": 1, "code": "A1", "isActive": true },
-  { "id": 2, "code": "A2", "isActive": true }
+  { "id": 1, "code": "A1", "isActive": true, "type": "Standard" },
+  { "id": 4, "code": "B1", "isActive": true, "type": "Disabled" },
+  { "id": 5, "code": "B2", "isActive": true, "type": "ElectricCharging" }
 ]
 ```
 
@@ -43,7 +44,7 @@ Visszaadja egy adott parkolóhely összes foglalását (Confirmed és Cancelled 
 
 ### POST /api/Reservations
 
-Új foglalás létrehozása. A rendszer ellenőrzi az időintervallum érvényességét, a parkolóhely létezését/aktív státuszát, és hogy nincs-e időbeli átfedés egy már meglévő aktív foglalással.
+Új foglalás létrehozása. A rendszer ellenőrzi az időintervallum érvényességét, a parkolóhely létezését/aktív státuszát, a típus-specifikus szabályokat, és hogy nincs-e időbeli átfedés egy már meglévő aktív foglalással.
 
 **Kérés body:**
 ```json
@@ -51,9 +52,12 @@ Visszaadja egy adott parkolóhely összes foglalását (Confirmed és Cancelled 
   "parkingSpotId": 1,
   "requesterName": "Teszt Elek",
   "startTime": "2026-08-20T10:00:00",
-  "endTime": "2026-08-20T12:00:00"
+  "endTime": "2026-08-20T12:00:00",
+  "hasDisabilityPermit": false
 }
 ```
+
+A hasDisabilityPermit mező csak Disabled típusú parkolóhelynél releváns, egyéb esetben figyelmen kívül van hagyva.
 
 **Válasz (201 Created):**
 ```json
@@ -72,6 +76,8 @@ Visszaadja egy adott parkolóhely összes foglalását (Confirmed és Cancelled 
 - "A záró időpontnak a kezdő időpont után kell lennie."
 - "A megadott parkolóhely nem létezik."
 - "A megadott parkolóhely jelenleg nem foglalható."
+- "Ez a parkolóhely mozgáskorlátozottak számára van fenntartva, érvényes igazolvány szükséges a foglaláshoz."
+- "Elektromos töltős parkolóhely egyszerre maximum 4 órára foglalható, a nagyobb kihasználtság érdekében."
 - "A parkolóhely a megadott időszakban már foglalt."
 
 ### DELETE /api/Reservations/{id}
