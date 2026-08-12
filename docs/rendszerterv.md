@@ -22,6 +22,7 @@ A függőségi irány: **Api → Infrastructure → Application → Domain**. A 
 - Id (int, PK)
 - Code (string, egyedi, pl. "A1")
 - IsActive (bool)
+- Type (enum: Standard, Disabled, ElectricCharging)
 
 **Reservation**
 - Id (int, PK)
@@ -36,14 +37,23 @@ A függőségi irány: **Api → Infrastructure → Application → Domain**. A 
 A foglalás létrehozásának lépései (ReservationService.CreateReservationAsync):
 1. Alap validáció: EndTime > StartTime
 2. A parkolóhely létezik és aktív
-3. Ütközés-ellenőrzés: nincs másik Confirmed státuszú foglalás a helyen, amely időben átfed (existing.Start < new.End AND existing.End > new.Start)
-4. Ha minden feltétel teljesül, a foglalás létrejön Confirmed státusszal
+3. Típus-specifikus szabályok (lásd lentebb)
+4. Ütközés-ellenőrzés: nincs másik Confirmed státuszú foglalás a helyen, amely időben átfed (existing.Start < new.End AND existing.End > new.Start)
+5. Ha minden feltétel teljesül, a foglalás létrejön Confirmed státusszal
 
 Lemondás (CancelReservationAsync): a foglalás státusza Cancelled-re vált, nem törlődik fizikailag (auditálhatóság miatt).
 
+## Parkolóhely típusok (opcionális bővítés)
+
+A parkolóhelyek nem egyformák, ezt a Type mező tükrözi, és ez ténylegesen befolyásolja a foglalási logikát:
+
+- **Standard**: nincs extra szabály, bárki foglalhatja
+- **Disabled** (mozgáskorlátozott hely): csak akkor foglalható, ha a kérésben a HasDisabilityPermit mező true - egyéb esetben a rendszer elutasítja
+- **ElectricCharging** (elektromos töltős hely): egy foglalás időtartama nem haladhatja meg a 4 órát, hogy a hely gyakrabban felszabaduljon más elektromos autók számára
+
 ## Adatbázis és induló állapot
 
-MS SQL Server, EF Core Code-First migrációval. Induláskor (Program.cs) a rendszer automatikusan lefuttatja a migrációt (Database.Migrate()), majd seedeli az adatbázist 5 alap parkolóhellyel (A1-A3, B1-B2), ha még nincs adat.
+MS SQL Server, EF Core Code-First migrációval. Induláskor (Program.cs) a rendszer automatikusan lefuttatja a migrációt (Database.Migrate()), majd seedeli az adatbázist 5 alap parkolóhellyel (A1-A3: Standard, B1: Disabled, B2: ElectricCharging), ha még nincs adat.
 
 ## Futtatás
 
