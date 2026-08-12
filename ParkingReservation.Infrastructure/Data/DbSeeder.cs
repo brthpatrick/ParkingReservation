@@ -16,15 +16,14 @@ public static class DbSeeder
 
         var spots = new List<ParkingSpot>
         {
-            new() { Code = "A1", IsActive = true },
-            new() { Code = "A2", IsActive = true },
-            new() { Code = "A3", IsActive = true },
-            new() { Code = "B1", IsActive = true },
-            new() { Code = "B2", IsActive = true },
+            new() { Code = "A1", IsActive = true, Type = ParkingSpotType.Standard },
+            new() { Code = "A2", IsActive = true, Type = ParkingSpotType.Standard },
+            new() { Code = "A3", IsActive = true, Type = ParkingSpotType.Standard },
+            new() { Code = "B1", IsActive = true, Type = ParkingSpotType.Disabled },
+            new() { Code = "B2", IsActive = true, Type = ParkingSpotType.ElectricCharging },
         };
 
         context.ParkingSpots.AddRange(spots);
         context.SaveChanges();
     }
-
 }

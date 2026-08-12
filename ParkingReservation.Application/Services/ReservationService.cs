@@ -1,9 +1,6 @@
 ﻿using ParkingReservation.Application.DTOs;
 using ParkingReservation.Application.Interfaces;
 using ParkingReservation.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ParkingReservation.Application.Services;
 
@@ -16,7 +13,7 @@ public class ReservationService
         _repository = repository;
     }
 
-    public async Task<(bool Success, string? Error, ReservationResponse? Result)> CreateReservationAsync(CreateReservationRequest request) 
+    public async Task<(bool Success, string? Error, ReservationResponse? Result)> CreateReservationAsync(CreateReservationRequest request)
     {
         if (request.EndTime <= request.StartTime)
         {
@@ -24,7 +21,7 @@ public class ReservationService
         }
 
         var parkingSpot = await _repository.GetParkingSpotByIdAsync(request.ParkingSpotId);
-        if (parkingSpot == null) 
+        if (parkingSpot is null)
         {
             return (false, "A megadott parkolóhely nem létezik.", null);
         }
@@ -33,9 +30,24 @@ public class ReservationService
             return (false, "A megadott parkolóhely jelenleg nem foglalható.", null);
         }
 
-        var hasOverlap = await _repository.HasOverlappingReservationsAsync(request.ParkingSpotId, request.StartTime, request.EndTime);
+        if (parkingSpot.Type == ParkingSpotType.Disabled && !request.HasDisabilityPermit)
+        {
+            return (false, "Ez a parkolóhely mozgáskorlátozottak számára van fenntartva, érvényes igazolvány szükséges a foglaláshoz.", null);
+        }
 
-        if (hasOverlap) 
+        if (parkingSpot.Type == ParkingSpotType.ElectricCharging)
+        {
+            var duration = request.EndTime - request.StartTime;
+            if (duration > TimeSpan.FromHours(4))
+            {
+                return (false, "Elektromos töltős parkolóhely egyszerre maximum 4 órára foglalható, a nagyobb kihasználtság érdekében.", null);
+            }
+        }
+
+        var hasOverlap = await _repository.HasOverlappingReservationsAsync(
+            request.ParkingSpotId, request.StartTime, request.EndTime);
+
+        if (hasOverlap)
         {
             return (false, "A parkolóhely a megadott időszakban már foglalt.", null);
         }
@@ -67,10 +79,10 @@ public class ReservationService
         return (true, null, response);
     }
 
-    public async Task<(bool Success, string? Error)> CancelReservationAsync(int reservationId) 
+    public async Task<(bool Success, string? Error)> CancelReservationAsync(int reservationId)
     {
         var reservation = await _repository.GetReservationByIdAsync(reservationId);
-        if (reservation is null) 
+        if (reservation is null)
         {
             return (false, "A foglalás nem található.");
         }

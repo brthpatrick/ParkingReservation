@@ -10,4 +10,5 @@ public class CreateReservationRequest
     public string RequesterName { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
+    public bool HasDisabilityPermit { get; set; } = false;
 }

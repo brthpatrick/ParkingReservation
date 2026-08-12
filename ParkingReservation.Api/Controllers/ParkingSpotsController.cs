@@ -25,7 +25,8 @@ public class ParkingSpotsController : ControllerBase
         {
             Id = s.Id,
             Code = s.Code,
-            IsActive = s.IsActive
+            IsActive = s.IsActive,
+            Type = s.Type.ToString()
         }).ToList();
 
         return Ok(response);
